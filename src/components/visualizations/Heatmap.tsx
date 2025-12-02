@@ -53,10 +53,11 @@ export function Heatmap() {
 
     const getColor = (count: number) => {
         if (count === 0) return "bg-muted hover:bg-muted/80"
-        if (count === 1) return "bg-primary/30"
-        if (count === 2) return "bg-primary/50"
-        if (count === 3) return "bg-primary/70"
-        return "bg-primary"
+        // GitHub Light Mode Greens
+        if (count === 1) return "bg-[#9be9a8] dark:bg-[#0e4429]"
+        if (count === 2) return "bg-[#40c463] dark:bg-[#006d32]"
+        if (count === 3) return "bg-[#30a14e] dark:bg-[#26a641]"
+        return "bg-[#216e39] dark:bg-[#39d353]"
     }
 
     return (
