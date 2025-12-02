@@ -51,42 +51,98 @@ export function Heatmap() {
         currentWeek = []
     }
 
+    // Generate months labels
+    const months: { name: string; weekIndex: number }[] = []
+    let lastMonth = -1
+
+    weeks.forEach((week, weekIndex) => {
+        const firstDayOfWeek = parseISO(week[0].date)
+        const month = firstDayOfWeek.getMonth()
+        if (month !== lastMonth) {
+            months.push({ name: format(firstDayOfWeek, 'MMM'), weekIndex })
+            lastMonth = month
+        }
+    })
+
     const getColor = (count: number) => {
-        if (count === 0) return "bg-muted hover:bg-muted/80"
-        // GitHub Light Mode Greens
-        if (count === 1) return "bg-[#9be9a8] dark:bg-[#0e4429]"
-        if (count === 2) return "bg-[#40c463] dark:bg-[#006d32]"
-        if (count === 3) return "bg-[#30a14e] dark:bg-[#26a641]"
-        return "bg-[#216e39] dark:bg-[#39d353]"
+        if (count === 0) return "bg-[#161b22]"
+        if (count === 1) return "bg-[#0e4429]"
+        if (count === 2) return "bg-[#006d32]"
+        if (count === 3) return "bg-[#26a641]"
+        return "bg-[#39d353]"
     }
 
     return (
-        <div className="w-full overflow-x-auto pb-4">
-            <div className="min-w-max">
-                <TooltipProvider>
-                    <div className="flex gap-1">
-                        {weeks.map((week, weekIndex) => (
-                            <div key={weekIndex} className="flex flex-col gap-1">
-                                {week.map((day) => (
-                                    <Tooltip key={day.date}>
-                                        <TooltipTrigger asChild>
-                                            <div
-                                                className={cn(
-                                                    "h-3 w-3 rounded-sm transition-colors cursor-default border border-transparent",
-                                                    day.count === 0 && "border-border/50", // Add border for empty cells for better visibility
-                                                    getColor(day.count)
-                                                )}
-                                            />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="text-xs">{day.date}: {day.count} completed</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ))}
-                            </div>
-                        ))}
+        <div className="w-full overflow-x-auto p-4 bg-[#0d1117] rounded-md border border-[#30363d]">
+            <div className="min-w-max flex flex-col gap-2">
+                {/* Month Labels */}
+                <div className="flex text-[11px] text-[#7d8590] ml-8 mb-2 relative h-4">
+                    {months.map((month, i) => (
+                        <span
+                            key={i}
+                            style={{
+                                position: 'absolute',
+                                left: `${month.weekIndex * 14}px` // 10px width + 4px gap approx
+                            }}
+                        >
+                            {month.name}
+                        </span>
+                    ))}
+                </div>
+
+                <div className="flex gap-2">
+                    {/* Day Labels */}
+                    <div className="flex flex-col gap-[3px] text-[11px] text-[#7d8590] pt-[15px] pr-2">
+                        <span className="h-[10px] leading-[10px] opacity-0">Sun</span>
+                        <span className="h-[10px] leading-[10px]">Mon</span>
+                        <span className="h-[10px] leading-[10px] opacity-0">Tue</span>
+                        <span className="h-[10px] leading-[10px]">Wed</span>
+                        <span className="h-[10px] leading-[10px] opacity-0">Thu</span>
+                        <span className="h-[10px] leading-[10px]">Fri</span>
+                        <span className="h-[10px] leading-[10px] opacity-0">Sat</span>
                     </div>
-                </TooltipProvider>
+
+                    {/* Grid */}
+                    <TooltipProvider>
+                        <div className="flex gap-[3px]">
+                            {weeks.map((week, weekIndex) => (
+                                <div key={weekIndex} className="flex flex-col gap-[3px]">
+                                    {week.map((day) => (
+                                        <Tooltip key={day.date}>
+                                            <TooltipTrigger asChild>
+                                                <div
+                                                    className={cn(
+                                                        "h-[10px] w-[10px] rounded-[2px] cursor-default transition-colors",
+                                                        getColor(day.count)
+                                                    )}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-[#6e7681] text-white border-none text-xs px-2 py-1">
+                                                <p>{day.count === 0 ? 'No contributions' : `${day.count} contributions`} on {format(parseISO(day.date), 'MMM d, yyyy')}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </TooltipProvider>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between mt-4 text-xs text-[#7d8590]">
+                    <a href="#" className="hover:text-[#58a6ff] hover:underline">Learn how we count contributions</a>
+                    <div className="flex items-center gap-1">
+                        <span>Less</span>
+                        <div className="flex gap-[3px] mx-1">
+                            <div className="w-[10px] h-[10px] rounded-[2px] bg-[#161b22]" />
+                            <div className="w-[10px] h-[10px] rounded-[2px] bg-[#0e4429]" />
+                            <div className="w-[10px] h-[10px] rounded-[2px] bg-[#006d32]" />
+                            <div className="w-[10px] h-[10px] rounded-[2px] bg-[#26a641]" />
+                            <div className="w-[10px] h-[10px] rounded-[2px] bg-[#39d353]" />
+                        </div>
+                        <span>More</span>
+                    </div>
+                </div>
             </div>
         </div>
     )
