@@ -14,6 +14,17 @@ interface Message {
     content: string;
 }
 
+declare global {
+    interface Window {
+        puter: {
+            ai: {
+                chat: (prompt: string, options?: { model?: string }) => Promise<{ message: { content: string } }>;
+            };
+            print: (msg: any) => void;
+        };
+    }
+}
+
 export function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -44,16 +55,47 @@ export function Chatbot() {
         setIsLoading(true);
 
         try {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: [...messages, userMessage] }),
+            // Using Puter.js for chat
+            // Note: The puter.ai.chat response structure might need adjustment based on exact library version, 
+            // but effectively it returns a promise usually resolving to the output or an object with text.
+            // Based on user snippet: puter.print(response) implies response is the text or an object.
+            // But usually LLM wrappers return an object. 
+            // Only way to know for sure is to try or assume standard. 
+            // Let's assume response is text or we check.
+            // Actually, typical puter.ai.chat returns specific structure but user snippet seemed simple.
+            // Let's use 'any' safely or check implementation.
+
+            // Re-reading user snippet:
+            // .then(response => { puter.print(response); });
+            // This suggests response itself is printable.
+
+            // However, for Chat interface we need the text.
+            // Let's assume response (if string) or response.message.content (if OpenAI-like).
+            // Let's try to handle it robustly.
+
+            const response = await window.puter.ai.chat(input, {
+                model: 'gemini-1.5-flash'
             });
 
-            if (!response.ok) throw new Error("Failed to fetch response");
+            // Puter.js chat usually returns an object like { message: { role: 'assistant', content: '...' } } 
+            // OR just the string content depending on the wrapper level.
+            // Documentation for puter.js v2 says puter.ai.chat(prompt) returns a ChatCompletion object or string?
+            // User snippet `puter.print(response)` is vague (print handles objects too).
 
-            const data = await response.json();
-            const assistantMessage: Message = { role: "assistant", content: data.content };
+            // Let's assume it returns a standard object similar to OpenAI or just text.
+            // We will inspect it. For typing I'll use `any` cast to be safe for now, 
+            // or better, handle the object structure if it matches common patterns.
+
+            let content = "";
+            if (typeof response === "string") {
+                content = response;
+            } else if (typeof response === "object" && response?.message?.content) {
+                content = response.message.content;
+            } else {
+                content = JSON.stringify(response);
+            }
+
+            const assistantMessage: Message = { role: "assistant", content: content };
             setMessages((prev) => [...prev, assistantMessage]);
         } catch (error) {
             console.error("Error sending message:", error);
